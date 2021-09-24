@@ -8,5 +8,32 @@
 </head>
 <body>
   <h1>Hello</h1>
+
+  <h3>Register Form</h3>
+  <form id="registration-form">
+    <input type="email" name="email">
+    <input type="password" name="password">
+    <button>Register</button>
+  </form>
+
+  <script>
+    (() => {
+      const form = document.getElementById('registration-form');
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const values = Object.values(form).reduce((obj, field) => {
+          if (field.name) {
+            obj[field.name] = field.value;
+          }
+
+          return obj;
+        }, {});
+
+        console.log(values);
+      });
+    })();
+  </script>
 </body>
 </html>
