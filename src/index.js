@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { connectDB } from './db.js';
 import { registerUser } from './accounts/register.js';
+import { authorizeUser } from './accounts/authorize.js';
 
 // ESM specific features
 // Don't have access to `__dirname` when `type: 'module'
@@ -13,8 +14,6 @@ const __dirname = path.dirname(__filename);
 
 const PORT = 3000;
 const app = fastify();
-
-console.log(process.env.MONGO_URL);
 
 // Tell our Fastify App to listen on a specific port
 async function startApp() {
@@ -26,8 +25,17 @@ async function startApp() {
 
     app.post('/api/register', {}, async (request, reply) => {
       try {
-        const userId = await registerUser(request.body.email, request.body.password);
-        console.log('User ID: ', userId);
+        const { body: { email, password } } = request;
+        const userId = await registerUser(email, password);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    app.post('/api/authorize', {}, async (request, reply) => {
+      try {
+        const { body: { email, password } } = request;
+        const userId = await authorizeUser(email, password);
       } catch (error) {
         console.error(error);
       }

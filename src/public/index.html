@@ -16,15 +16,25 @@
     <button>Register</button>
   </form>
 
+  <br />
+  <hr />
+  <br />
+  
+  <h3>Login Form</h3>
+  <form id="login-form">
+    <input type="email" name="email">
+    <input type="password" name="password">
+    <button>Login</button>
+  </form>
+
   <script>
     (() => {
-      const form = document.getElementById('registration-form');
-
-      form.addEventListener('submit', async (e) => {
+      const registrationForm = document.getElementById('registration-form');
+      registrationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         try {
-          const values = Object.values(form).reduce((obj, field) => {
+          const values = Object.values(registrationForm).reduce((obj, field) => {
             if (field.name) {
               obj[field.name] = field.value;
             }
@@ -33,6 +43,29 @@
           }, {});
 
           const res = await fetch('/api/register', {
+            method: 'POST',
+            body: JSON.stringify(values),
+            headers: { 'Content-type': 'application/json; charset=UTF-8' },
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      });
+      
+      const loginForm = document.getElementById('login-form');
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        try {
+          const values = Object.values(loginForm).reduce((obj, field) => {
+            if (field.name) {
+              obj[field.name] = field.value;
+            }
+
+            return obj;
+          }, {});
+
+          const res = await fetch('/api/authorize', {
             method: 'POST',
             body: JSON.stringify(values),
             headers: { 'Content-type': 'application/json; charset=UTF-8' },
