@@ -20,18 +20,26 @@
     (() => {
       const form = document.getElementById('registration-form');
 
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const values = Object.values(form).reduce((obj, field) => {
-          if (field.name) {
-            obj[field.name] = field.value;
-          }
+        try {
+          const values = Object.values(form).reduce((obj, field) => {
+            if (field.name) {
+              obj[field.name] = field.value;
+            }
 
-          return obj;
-        }, {});
+            return obj;
+          }, {});
 
-        console.log(values);
+          const res = await fetch('/api/register', {
+            method: 'POST',
+            body: JSON.stringify(values),
+            headers: { 'Content-type': 'application/json; charset=UTF-8' },
+          });
+        } catch (error) {
+          console.error(error);
+        }
       });
     })();
   </script>
