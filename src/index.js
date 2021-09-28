@@ -8,6 +8,7 @@ import { connectDB } from './db.js';
 import { registerUser } from './accounts/register.js';
 import { authorizeUser } from './accounts/authorize.js';
 import { logUserIn } from './accounts/logUserIn.js';
+import { getUserFromCookies } from './accounts/user.js';
 
 // ESM specific features
 // Don't have access to `__dirname` when `type: 'module'
@@ -56,11 +57,24 @@ async function startApp() {
       }
     });
 
-    app.get('/test', {}, (request, reply) => {
-      console.log(request.headers['user-agent']);
-      reply.send({
-        data: 'hello world',
-      });
+    app.get('/test', {}, async (request, reply) => {
+      try {
+        // Verify user login
+        const user = await getUserFromCookies(request)
+        
+        if (user?._id) {
+          reply.send({
+            data: user,
+          });
+        } else {
+          reply.send({
+            data: 'User Lookup Failed'
+          })
+        }
+        
+      } catch (error) {
+        throw new Error(error);
+      }
     });
 
     await app.listen(port);
