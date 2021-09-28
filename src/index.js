@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 import { connectDB } from './db.js';
 import { registerUser } from './accounts/register.js';
 import { authorizeUser } from './accounts/authorize.js';
-import { getUserFromCookies, logUserIn } from './accounts/user.js';
+import { getUserFromCookies, logUserIn, logUserOut } from './accounts/user.js';
 
 // ESM specific features
 // Don't have access to `__dirname` when `type: 'module'
@@ -30,7 +30,7 @@ async function startApp() {
     app.post('/api/register', {}, async (request, reply) => {
       try {
         const { body: { email, password } } = request;
-        const userId = await registerUser(email, password);
+        await registerUser(email, password);
       } catch (error) {
         console.error(error);
       }
@@ -43,14 +43,19 @@ async function startApp() {
 
         if (isAuthorized) {
           await logUserIn(userID, request, reply);
-          reply.send({
-            data: 'User logged in',
-          });
+          reply.send({ data: 'User logged in' });
         }
         
-        reply.send({
-          data: 'Auth failed',
-        });
+        reply.send({ data: 'Auth failed' });
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    app.post('/api/logout', {}, async (request, reply) => {
+      try {
+        await logUserOut(request, reply);
+        reply.send({ data: 'User Logged Out' });
       } catch (error) {
         console.error(error);
       }
@@ -62,13 +67,9 @@ async function startApp() {
         const user = await getUserFromCookies(request, reply)
         
         if (user?._id) {
-          reply.send({
-            data: user,
-          });
+          reply.send({ data: user });
         } else {
-          reply.send({
-            data: 'User Lookup Failed'
-          })
+          reply.send({ data: 'User Lookup Failed' })
         }
         
       } catch (error) {

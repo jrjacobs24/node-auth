@@ -64,3 +64,31 @@ export async function logUserIn(userID, request, reply) {
   const sessionToken = await createSession(userID, connectionInfo);
   await refreshTokens(sessionToken, userID, reply);
 }
+
+/**
+ * Delete the user's session and clear their refresh and access tokens
+ * 
+ * @async
+ * @param {import('fastify').FastifyRequest} request 
+ * @param {import('fastify').FastifyReply} reply 
+ */
+export async function logUserOut(request, reply) {
+  try {
+    const { session } = await import('../session/session.js');
+
+    if (request?.cookies?.refreshToken) {
+      const { refreshToken } = request.cookies;
+      const { sessionToken } = jwt.verify(refreshToken, JWTSignature);
+
+      // Delete db record for session
+      await session.deleteOne({ sessionToken });
+    }
+
+    // Remove Cookies
+    reply
+      .clearCookie('refreshToken')
+      .clearCookie('accessToken');
+  } catch (error) {
+    console.error(error);
+  }
+}
