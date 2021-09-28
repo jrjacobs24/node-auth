@@ -14,7 +14,7 @@ import { logUserIn } from './accounts/logUserIn.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PORT = 3000;
+const port = process.env.PORT;
 const app = fastify();
 
 // Tell our Fastify App to listen on a specific port
@@ -43,25 +43,28 @@ async function startApp() {
 
         if (isAuthorized) {
           await logUserIn(userID, request, reply);
-        }
-        // Generate Auth Tokens
-
-        // Set Cookies
-        reply
-          .setCookie('testCookie', 'the value is this', {
-            path: '/', // root of site
-            domain: 'localhost',
-            httpOnly: true,
-          }).send({
-            data: 'Just testing',
+          reply.send({
+            data: 'User logged in',
           });
+        }
+        
+        reply.send({
+          data: 'Auth failed',
+        });
       } catch (error) {
         console.error(error);
       }
     });
 
-    await app.listen(PORT);
-    console.log(`🚀 Server Listening at port: ${PORT}`);
+    app.get('/test', {}, (request, reply) => {
+      console.log(request.headers['user-agent']);
+      reply.send({
+        data: 'hello world',
+      });
+    });
+
+    await app.listen(port);
+    console.log(`🚀 Server Listening at port: ${port}`);
   } catch (error) {
     console.error(error);
   }
