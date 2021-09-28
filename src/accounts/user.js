@@ -7,6 +7,21 @@ const { ObjectId } = mongo;
 
 const JWTSignature = process.env.JWT_SIGNATURE;
 
+/**
+ * @typedef User
+ * @property {mongo.ObjectId} _id
+ * @property {{address: string, verified: boolean}} email
+ * @property {string} password
+ */
+
+/**
+ * Fetch a user based on accessToken. If accessToken doesn't exist, check for a valid refresh token
+ * and session. If so, refresh the user's access token and return the user.
+ * 
+ * @param {import('fastify').FastifyRequest} request 
+ * @param {import('fastify').FastifyReply} reply 
+ * @returns {User}
+ */
 export async function getUserFromCookies(request, reply) {
   try {
     const { user } = await import('../user/user.js');
@@ -16,9 +31,8 @@ export async function getUserFromCookies(request, reply) {
     if (request?.cookies?.accessToken) {
       const { accessToken } = request.cookies;
       
-      // Decode access token
+      // Verify access token
       const decodedAccessToken = jwt.verify(accessToken, JWTSignature);
-      console.log('decodedAccessToken: ', decodedAccessToken);
       
       // Return user from record
       return user.findOne({
@@ -55,6 +69,15 @@ export async function getUserFromCookies(request, reply) {
   }
 }
 
+
+/**
+ * Delete the user's session and clear their refresh and access tokens
+ * 
+ * @async
+ * @param {mongo.ObjectId} userID
+ * @param {import('fastify').FastifyRequest} request 
+ * @param {import('fastify').FastifyReply} reply 
+ */
 export async function logUserIn(userID, request, reply) {
   const connectionInfo = {
     ip: request.ip,

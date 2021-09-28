@@ -17,22 +17,34 @@ const __dirname = path.dirname(__filename);
 const port = process.env.PORT;
 const app = fastify();
 
-// Tell our Fastify App to listen on a specific port
 async function startApp() {
   try {
+    // Setup support for cookies and serving static files via Fastify
     app.register(fastifyCookie, { secret: process.env.COOKIE_SIGNATURE });
-
-    app.register(fastifyStatic, {
-      // pathname
-      root: path.join(__dirname, 'public'),
-    });
+    app.register(fastifyStatic, { root: path.join(__dirname, 'public') });
 
     app.post('/api/register', {}, async (request, reply) => {
       try {
         const { body: { email, password } } = request;
-        await registerUser(email, password);
+        const userID = await registerUser(email, password);
+
+        if (userID) {
+          await logUserIn(userID, request, reply);
+          reply.send({
+            data: {
+              status: 'SUCCESS',
+              userID,
+            },
+          });
+        }
       } catch (error) {
         console.error(error);
+        reply.send({
+          data: {
+            status: 'FAILED',
+            userID,
+          },
+        });
       }
     });
 
@@ -43,10 +55,16 @@ async function startApp() {
 
         if (isAuthorized) {
           await logUserIn(userID, request, reply);
-          reply.send({ data: 'User logged in' });
+          reply.send({
+            data: 'SUCCESS',
+            userID,
+          });
         }
         
-        reply.send({ data: 'Auth failed' });
+        reply.send({
+          data: 'FAILED',
+          userID
+        });
       } catch (error) {
         console.error(error);
       }
@@ -55,9 +73,10 @@ async function startApp() {
     app.post('/api/logout', {}, async (request, reply) => {
       try {
         await logUserOut(request, reply);
-        reply.send({ data: 'User Logged Out' });
+        reply.send({ data: 'SUCCESS' });
       } catch (error) {
         console.error(error);
+        reply.send({ data: 'FAILED' });
       }
     });
 
@@ -77,6 +96,7 @@ async function startApp() {
       }
     });
 
+    // Tell our Fastify App to listen on a specific port
     await app.listen(port);
     console.log(`🚀 Server Listening at port: ${port}`);
   } catch (error) {
@@ -84,6 +104,5 @@ async function startApp() {
   }
 }
 
-connectDB().then(() => {
-  startApp();
-});
+// Kick it all off
+connectDB().then(() => startApp());
