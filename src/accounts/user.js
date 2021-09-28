@@ -1,6 +1,7 @@
 import mongo from 'mongodb';
 import jwt from "jsonwebtoken";
-import { createTokens } from './tokens.js';
+import { refreshTokens } from './tokens.js';
+import { createSession } from './session.js';
 
 const { ObjectId } = mongo;
 
@@ -54,30 +55,12 @@ export async function getUserFromCookies(request, reply) {
   }
 }
 
-export async function refreshTokens(sessionToken, userID, reply) {
-  try {
-    // Create tokens
-    const { accessToken, refreshToken } = await createTokens(sessionToken, userID);
+export async function logUserIn(userID, request, reply) {
+  const connectionInfo = {
+    ip: request.ip,
+    userAgent: request.headers['user-agent'],
+  };
 
-    // TODO: Extract all of this into a separate function and update here and logUserIn.js
-    // Set the Cookies
-    const now = new Date();
-
-    // Get date, 30 days in the future
-    const refreshExpires = now.setDate(now.getDate() + 30);
-    reply
-      .setCookie('refreshToken', refreshToken, {
-        path: '/', // root of site
-        domain: 'localhost',
-        httpOnly: true,
-        expires: refreshExpires,
-      })
-      .setCookie('accessToken', accessToken, {
-        path: '/', // root of site
-        domain: 'localhost',
-        httpOnly: true,
-      });
-  } catch (error) {
-    console.error(error);
-  }
+  const sessionToken = await createSession(userID, connectionInfo);
+  await refreshTokens(sessionToken, userID, reply);
 }

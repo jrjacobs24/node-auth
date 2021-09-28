@@ -7,8 +7,7 @@ import { fileURLToPath } from 'url';
 import { connectDB } from './db.js';
 import { registerUser } from './accounts/register.js';
 import { authorizeUser } from './accounts/authorize.js';
-import { logUserIn } from './accounts/logUserIn.js';
-import { getUserFromCookies } from './accounts/user.js';
+import { getUserFromCookies, logUserIn } from './accounts/user.js';
 
 // ESM specific features
 // Don't have access to `__dirname` when `type: 'module'
