@@ -28,12 +28,14 @@ export async function refreshTokens(sessionToken, userID, reply) {
         path: '/', // root of site
         domain: 'localhost',
         httpOnly: true,
+        secure: true,
         expires: refreshExpires,
       })
       .setCookie('accessToken', accessToken, {
         path: '/', // root of site
         domain: 'localhost',
         httpOnly: true,
+        secure: true,
       });
   } catch (error) {
     console.error(error);
