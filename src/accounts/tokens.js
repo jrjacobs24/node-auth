@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
 
-const JWTSignature = process.env.JWT_SIGNATURE;
+const { JWT_SIGNATURE, ROOT_DOMAIN } = process.env;
 
 export async function createTokens(sessionToken, userID) {
   try {
-    const refreshToken = jwt.sign({ sessionToken }, JWTSignature);
-    const accessToken = jwt.sign({ sessionToken, userID }, JWTSignature);
+    const refreshToken = jwt.sign({ sessionToken }, JWT_SIGNATURE);
+    const accessToken = jwt.sign({ sessionToken, userID }, JWT_SIGNATURE);
 
     return { refreshToken, accessToken };
   } catch (error) {
@@ -26,14 +26,14 @@ export async function refreshTokens(sessionToken, userID, reply) {
     reply
       .setCookie('refreshToken', refreshToken, {
         path: '/', // root of site
-        domain: 'localhost',
+        domain: ROOT_DOMAIN,
         httpOnly: true,
         secure: true,
         expires: refreshExpires,
       })
       .setCookie('accessToken', accessToken, {
         path: '/', // root of site
-        domain: 'localhost',
+        domain: ROOT_DOMAIN,
         httpOnly: true,
         secure: true,
       });
