@@ -29,8 +29,9 @@ export async function sendEmail({
       subject,
       html,
     });
-    
+
     console.log(info);
+    console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
   } catch (error) {
     console.error(error);
   }

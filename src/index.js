@@ -10,6 +10,7 @@ import { registerUser } from './accounts/register.js';
 import { authorizeUser } from './accounts/authorize.js';
 import { getUserFromCookies, logUserIn, logUserOut } from './accounts/user.js';
 import { sendEmail, mailInit } from './mail/index.js';
+import { createVerifyEmailLink } from './accounts/verify.js';
 
 // ESM specific features
 // Don't have access to `__dirname` when `type: 'module'
@@ -38,10 +39,6 @@ function registerFastifySupport() {
 async function startApp() {
   try {
     await mailInit();
-    await sendEmail({
-      subject: 'Get Schwifty',
-      html: '<h1>I\'m a pickle!</h1>',
-    });
 
     registerFastifySupport();
 
@@ -50,7 +47,15 @@ async function startApp() {
         const { body: { email, password } } = request;
         const userID = await registerUser(email, password);
 
+        // If account creation was successful
         if (userID) {
+          const emailLink = await createVerifyEmailLink(email);
+          await sendEmail({
+            to: email,
+            subject: 'Verify your email',
+            html: `<a href="${emailLink}">Verify</a>`,
+          });
+
           await logUserIn(userID, request, reply);
           reply.send({
             data: {
