@@ -9,6 +9,7 @@ import { connectDB } from './db.js';
 import { registerUser } from './accounts/register.js';
 import { authorizeUser } from './accounts/authorize.js';
 import { getUserFromCookies, logUserIn, logUserOut } from './accounts/user.js';
+import { sendEmail, mailInit } from './mail/index.js';
 
 // ESM specific features
 // Don't have access to `__dirname` when `type: 'module'
@@ -36,6 +37,12 @@ function registerFastifySupport() {
 
 async function startApp() {
   try {
+    await mailInit();
+    await sendEmail({
+      subject: 'Get Schwifty',
+      html: '<h1>I\'m a pickle!</h1>',
+    });
+
     registerFastifySupport();
 
     app.post('/api/register', {}, async (request, reply) => {
