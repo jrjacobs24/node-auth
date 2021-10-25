@@ -1,7 +1,8 @@
 import './env.js';
 import { fastify } from 'fastify';
-import fastifyStatic from 'fastify-static';
+// import fastifyStatic from 'fastify-static';
 import fastifyCookie from 'fastify-cookie';
+import fastifyCORS from 'fastify-cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { connectDB } from './db.js';
@@ -14,14 +15,28 @@ import { getUserFromCookies, logUserIn, logUserOut } from './accounts/user.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const port = process.env.PORT;
+const { PORT, ROOT_DOMAIN, COOKIE_SIGNATURE } = process.env;
 const app = fastify();
+
+/**
+ * Setup support for cookies, serving static files, and our CORS policy via Fastify
+ * 
+ * @returns {void}
+ */
+function registerFastifySupport() {
+  const origin = new RegExp(`(.)?${ROOT_DOMAIN}`);
+
+  app.register(fastifyCookie, { secret: COOKIE_SIGNATURE });
+  // app.register(fastifyStatic, { root: path.join(__dirname, 'public') });
+  app.register(fastifyCORS, {
+    origin,
+    credentials: true,
+  });
+}
 
 async function startApp() {
   try {
-    // Setup support for cookies and serving static files via Fastify
-    app.register(fastifyCookie, { secret: process.env.COOKIE_SIGNATURE });
-    app.register(fastifyStatic, { root: path.join(__dirname, 'public') });
+    registerFastifySupport();
 
     app.post('/api/register', {}, async (request, reply) => {
       try {
@@ -97,8 +112,8 @@ async function startApp() {
     });
 
     // Tell our Fastify App to listen on a specific port
-    await app.listen(port);
-    console.log(`🚀 Server Listening at port: ${port}`);
+    await app.listen(PORT);
+    console.log(`🚀 Server Listening at port: ${PORT}`);
   } catch (error) {
     console.error(error);
   }

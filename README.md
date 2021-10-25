@@ -9,3 +9,5 @@ For those with Homebrew, Caddy can be installed with the following command:
 ```
 brew install caddy
 ```
+
+Once installed, run `npm run certify` to run the local `Caddyfile` in this repo alongside the server.
