@@ -1,59 +1,30 @@
-const apiRootDomain = 'https://api.nodeauth.dev';
+import { fileURLToPath } from 'url';
+import { fastify } from 'fastify';
+import fastifyStatic from 'fastify-static';
+import path from 'path';
 
-async function logout() {
+// ESM specific features
+// Don't have access to `__dirname` when `type: 'module'
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// const apiRootDomain = 'https://api.nodeauth.dev';
+const UI_PORT = 5000;
+
+const app = fastify();
+
+async function startUI() {
   try {
-    await fetch(`${apiRootDomain}/api/logout`, { method: 'POST' });
+    app.register(
+      fastifyStatic,
+      { root: path.join(__dirname, '../public') }
+    );
+
+    await app.listen(UI_PORT);
+    console.log(`🚀 Server Listening at port: ${UI_PORT}`);
   } catch (error) {
     console.error(error);
   }
 }
 
-(() => {
-  const registrationForm = document.getElementById('registration-form');
-  registrationForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    try {
-      const values = Object.values(registrationForm).reduce((obj, field) => {
-        if (field.name) {
-          obj[field.name] = field.value;
-        }
-
-        return obj;
-      }, {});
-
-      await fetch(`${apiRootDomain}/api/register`, {
-        method: 'POST',
-        body: JSON.stringify(values),
-        credentials: 'include',
-        headers: { 'Content-type': 'application/json; charset=UTF-8' },
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  });
-  
-  const loginForm = document.getElementById('login-form');
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    try {
-      const values = Object.values(loginForm).reduce((obj, field) => {
-        if (field.name) {
-          obj[field.name] = field.value;
-        }
-
-        return obj;
-      }, {});
-
-      const res = await fetch(`${apiRootDomain}/api/authorize`, {
-        method: 'POST',
-        body: JSON.stringify(values),
-        credentials: 'include',
-        headers: { 'Content-type': 'application/json; charset=UTF-8' },
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  });
-})();
+startUI();

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>Hello</h1>
+
+  <h3>Register Form</h3>
+  <form id="registration-form">
+    <input type="email" name="email">
+    <input type="password" name="password">
+    <button>Register</button>
+  </form>
+
+  <br />
+  <hr />
+  <br />
+  
+  <h3>Login Form</h3>
+  <form id="login-form">
+    <input type="email" name="email">
+    <input type="password" name="password">
+    <button>Login</button>
+  </form>
+
+  <br />
+  <hr />
+  <br />
+  
+  <button type="button" onclick="logout()">Logout</button>
+
+  <script>
+    async function logout() {
+      try {
+        await fetch(`${apiRootDomain}/api/logout`, { method: 'POST' });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    (() => {
+      const registrationForm = document.getElementById('registration-form');
+      registrationForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        try {
+          const values = Object.values(registrationForm).reduce((obj, field) => {
+            if (field.name) {
+              obj[field.name] = field.value;
+            }
+
+            return obj;
+          }, {});
+
+          await fetch(`${apiRootDomain}/api/register`, {
+            method: 'POST',
+            body: JSON.stringify(values),
+            credentials: 'include',
+            headers: { 'Content-type': 'application/json; charset=UTF-8' },
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      });
+      
+      const loginForm = document.getElementById('login-form');
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        try {
+          const values = Object.values(loginForm).reduce((obj, field) => {
+            if (field.name) {
+              obj[field.name] = field.value;
+            }
+
+            return obj;
+          }, {});
+
+          const res = await fetch(`${apiRootDomain}/api/authorize`, {
+            method: 'POST',
+            body: JSON.stringify(values),
+            credentials: 'include',
+            headers: { 'Content-type': 'application/json; charset=UTF-8' },
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
