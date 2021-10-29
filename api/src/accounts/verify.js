@@ -22,3 +22,29 @@ export async function createVerifyEmailLink(email) {
     console.error(error);
   }
 }
+
+export async function validateVerifyEmail(token, email) {
+  try {
+    // Create a hash (aka token)
+    const emailToken = await createVerifyEmailToken(email);
+    const isValid = emailToken === token;
+
+    if (isValid) {
+      // Update user to make them verified
+      const { user } = await import('../user/user.js');
+      await user.updateOne({
+        'email.address': email,
+      }, {
+        // `$set` - Mongo-specific pattern when updating a singular field value in a document
+        $set: { 'email.verified': true },
+      });
+
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.log('error: ', error);
+    return false;
+  }
+}

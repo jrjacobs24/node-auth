@@ -7,7 +7,7 @@ import { registerUser } from './accounts/register.js';
 import { authorizeUser } from './accounts/authorize.js';
 import { getUserFromCookies, logUserIn, logUserOut } from './accounts/user.js';
 import { sendEmail, mailInit } from './mail/index.js';
-import { createVerifyEmailLink } from './accounts/verify.js';
+import { createVerifyEmailLink, validateVerifyEmail } from './accounts/verify.js';
 
 const { PORT, ROOT_DOMAIN, COOKIE_SIGNATURE } = process.env;
 const app = fastify();
@@ -93,6 +93,23 @@ function registerEndpoints() {
     } catch (error) {
       console.error(error);
       reply.send({ data: 'FAILED' });
+    }
+  });
+
+  app.post('/api/verify', {}, async(request, reply) => {
+    try {
+      const { email, token } = request.body;
+      const isValid = await validateVerifyEmail(token, email);
+      
+      if (isValid) {
+        return reply.code(200).send();
+      }
+
+      // Un-Authorized
+      return reply.code(401).send();
+    } catch (error) {
+      console.log('error: ', error);
+      return reply.code(401).send();
     }
   });
 

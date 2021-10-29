@@ -34,6 +34,7 @@
   <button type="button" onclick="logout()">Logout</button>
 
   <script>
+    const apiRootDomain = 'https://api.nodeauth.dev';
     async function logout() {
       try {
         await fetch(`${apiRootDomain}/api/logout`, { method: 'POST' });
