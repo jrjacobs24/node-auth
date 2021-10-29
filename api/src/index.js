@@ -5,7 +5,7 @@ import fastifyCORS from 'fastify-cors';
 import { connectDB } from './db.js';
 import { registerUser } from './accounts/register.js';
 import { authorizeUser } from './accounts/authorize.js';
-import { getUserFromCookies, logUserIn, logUserOut } from './accounts/user.js';
+import { getUserFromCookies, logUserIn, logUserOut, changePassword } from './accounts/user.js';
 import { sendEmail, mailInit } from './mail/index.js';
 import { createVerifyEmailLink, validateVerifyEmail } from './accounts/verify.js';
 
@@ -96,16 +96,43 @@ function registerEndpoints() {
     }
   });
 
-  app.post('/api/verify', {}, async(request, reply) => {
+  app.post('/api/verify', {}, async (request, reply) => {
     try {
       const { email, token } = request.body;
       const isValid = await validateVerifyEmail(token, email);
-      
+
       if (isValid) {
         return reply.code(200).send();
       }
 
       // Un-Authorized
+      return reply.code(401).send();
+    } catch (error) {
+      console.log('error: ', error);
+      return reply.code(401).send();
+    }
+  });
+
+  app.post('/api/change-password', {}, async (request, reply) => {
+    try {
+      // Verity user login via cookies
+      const user = await getUserFromCookies(request, reply);
+      const { oldPassword, newPassword } = request?.body;
+
+      if (user?.email) {
+        // Compare current logged in user with form to re-authorize
+        const {
+          isAuthorized,
+          userID
+        } = await authorizeUser(user.email?.address, oldPassword);
+  
+        // Update password in db
+        if (isAuthorized) {
+          await changePassword(userID, newPassword);
+          return reply.code(200).send();
+        }
+      }
+
       return reply.code(401).send();
     } catch (error) {
       console.log('error: ', error);

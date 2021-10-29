@@ -2,6 +2,7 @@ import mongo from 'mongodb';
 import jwt from "jsonwebtoken";
 import { refreshTokens } from './tokens.js';
 import { createSession } from './session.js';
+import { hashPassword } from './register.js';
 
 const { ObjectId } = mongo;
 
@@ -113,5 +114,23 @@ export async function logUserOut(request, reply) {
       .clearCookie('accessToken');
   } catch (error) {
     console.error(error);
+  }
+}
+
+export async function changePassword(userID, newPassword) {
+  try {
+    const { user } = await import('../user/user.js');
+    const hashedPassword = await hashPassword(newPassword);
+
+    return user.updateOne({
+      _id: userID,
+    }, {
+      $set: {
+        password: hashedPassword,
+      },
+    });
+  } catch (error) {
+    console.log('error: ', error);
+    
   }
 }

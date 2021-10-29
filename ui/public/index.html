@@ -11,8 +11,14 @@
 
   <h3>Register Form</h3>
   <form id="registration-form">
-    <input type="email" name="email">
-    <input type="password" name="password">
+    <div>
+      <label for="email">Email</label>
+      <input type="email" name="email">
+    </div>
+    <div>
+      <label for="password">Password</label>
+      <input type="password" name="password">
+    </div>
     <button>Register</button>
   </form>
 
@@ -22,9 +28,33 @@
   
   <h3>Login Form</h3>
   <form id="login-form">
-    <input type="email" name="email">
-    <input type="password" name="password">
+    <div>
+      <label for="email">Email</label>
+      <input type="email" name="email">
+    </div>
+    <div>
+      <label for="password">Password</label>
+      <input type="password" name="password">
+    </div>
     <button>Login</button>
+  </form>
+
+  <br />
+  <hr />
+  <br />
+  
+  <h3>Change Password</h3>
+  <form id="change-password-form">
+    <div>
+      <label for="oldPassword">Old Password</label>
+      <input type="password" name="oldPassword">
+    </div>
+
+    <div>
+      <label for="newPassword">New Password</label>
+      <input type="password" name="newPassword">
+    </div>
+    <button type="submit">Submit</button>
   </form>
 
   <br />
@@ -82,6 +112,31 @@
           }, {});
 
           const res = await fetch(`${apiRootDomain}/api/authorize`, {
+            method: 'POST',
+            body: JSON.stringify(values),
+            credentials: 'include',
+            headers: { 'Content-type': 'application/json; charset=UTF-8' },
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      });
+
+      // CHANGE PASSWORD
+      const changePasswordForm = document.getElementById('change-password-form');
+      changePasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        try {
+          const values = Object.values(changePasswordForm).reduce((obj, field) => {
+            if (field.name) {
+              obj[field.name] = field.value;
+            }
+
+            return obj;
+          }, {});
+
+          const res = await fetch(`${apiRootDomain}/api/change-password`, {
             method: 'POST',
             body: JSON.stringify(values),
             credentials: 'include',
