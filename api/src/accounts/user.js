@@ -6,7 +6,7 @@ import { hashPassword } from './register.js';
 
 const { ObjectId } = mongo;
 
-const JWTSignature = process.env.JWT_SIGNATURE;
+const { JWT_SIGNATURE, ROOT_DOMAIN } = process.env;
 
 /**
  * @typedef User
@@ -33,7 +33,7 @@ export async function getUserFromCookies(request, reply) {
       const { accessToken } = request.cookies;
       
       // Verify access token
-      const decodedAccessToken = jwt.verify(accessToken, JWTSignature);
+      const decodedAccessToken = jwt.verify(accessToken, JWT_SIGNATURE);
       
       // Return user from record
       return user.findOne({
@@ -46,7 +46,7 @@ export async function getUserFromCookies(request, reply) {
       const { refreshToken } = request.cookies;
 
       // Decode refresh token
-      const { sessionToken } = jwt.verify(refreshToken, JWTSignature);
+      const { sessionToken } = jwt.verify(refreshToken, JWT_SIGNATURE);
 
       // Look up session
       const currentSession = await session.findOne({ sessionToken });
@@ -102,7 +102,7 @@ export async function logUserOut(request, reply) {
 
     if (request?.cookies?.refreshToken) {
       const { refreshToken } = request.cookies;
-      const { sessionToken } = jwt.verify(refreshToken, JWTSignature);
+      const { sessionToken } = jwt.verify(refreshToken, JWT_SIGNATURE);
 
       // Delete db record for session
       await session.deleteOne({ sessionToken });
@@ -110,13 +110,31 @@ export async function logUserOut(request, reply) {
 
     // Remove Cookies
     reply
-      .clearCookie('refreshToken')
-      .clearCookie('accessToken');
+      .clearCookie('refreshToken', {
+        path: '/',
+        domain: ROOT_DOMAIN,
+        httpOnly: true,
+        secure: true,
+      })
+      .clearCookie('accessToken', {
+        path: '/',
+        domain: ROOT_DOMAIN,
+        httpOnly: true,
+        secure: true,
+      });
   } catch (error) {
     console.error(error);
   }
 }
 
+/**
+ * Update the password on a user in our database
+ * 
+ * @async
+ * @param {mongo.ObjectId} userID 
+ * @param {string} newPassword 
+ * @returns {Promise<import('mongodb').UpdateResult>}
+ */
 export async function changePassword(userID, newPassword) {
   try {
     const { user } = await import('../user/user.js');
