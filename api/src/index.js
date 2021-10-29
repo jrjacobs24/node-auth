@@ -115,7 +115,7 @@ function registerEndpoints() {
 
 async function startApp() {
   try {
-    // await mailInit();
+    await mailInit();
     registerFastifySupport();
     registerEndpoints();
 
